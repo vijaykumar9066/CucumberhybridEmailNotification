@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f6f6f6;
+        margin: 0;
+        padding: 0;
+    }
+
+    .card {
+        border: 1px solid #d1c4e9;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 10px;
+        background: #ffffff;
+    }
+
+    .header {
+        background-color: #6a1b9a;
+        padding: 12px;
+        color: white;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .footer {
+        margin-top: 20px;
+        font-size: 14px;
+        padding-top: 10px;
+        border-top: 1px solid #ddd;
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">Automation Execution Report</div>
+
+    <p><b>Project:</b> {{projectName}}</p>
+    <p><b>URL:</b> {{url}}</p>
+    <p><b>Browser:</b> {{browser}}</p>
+    <p><b>Executed At:</b> {{timestamp}}</p>
+
+    <p style="margin-top:15px; color:#d32f2f;">
+        <b>Note:</b>
+        This report is valid only for <b>24 hours</b>.
+    </p>
+
+    <div class="footer">
+        <b>Thanks & Regards,</b><br>
+        Automation Tester Team
+    </div>
+
+</div>
+
+</body>
+</html>

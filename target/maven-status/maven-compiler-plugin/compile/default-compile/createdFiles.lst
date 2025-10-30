@@ -1,0 +1,6 @@
+utiles\commonutils.class
+pages\LoginPage.class
+utiles\ConfigReader.class
+utiles\ElementsUtils.class
+utiles\EmailUtils.class
+utiles\EmailUtils$1.class
