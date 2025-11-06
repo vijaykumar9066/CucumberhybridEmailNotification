@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
+<project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -15,17 +15,24 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <cucumber.version>7.28.2</cucumber.version>
-    <selenium.version>4.19.0</selenium.version>
+    <selenium.version>4.24.0</selenium.version>
   </properties>
 
   <dependencies>
-  	<dependency>
-	    <groupId>com.sun.mail</groupId>
-	    <artifactId>jakarta.mail</artifactId>
-	    <version>2.0.1</version>
-	</dependency>
 
-  
+    <!-- Mail -->
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>2.0.7</version>
+    </dependency>
 
     <!-- ✅ Selenium -->
     <dependency>
@@ -33,44 +40,44 @@
       <artifactId>selenium-java</artifactId>
       <version>${selenium.version}</version>
     </dependency>
+    
+	<dependency>
+	    <groupId>io.github.bonigarcia</groupId>
+	    <artifactId>webdrivermanager</artifactId>
+	    <version>5.9.2</version>
+	</dependency>
 
-    <!-- ✅ Cucumber Core -->
+
+
+    <!-- ✅ Cucumber -->
     <dependency>
       <groupId>io.cucumber</groupId>
       <artifactId>cucumber-java</artifactId>
       <version>${cucumber.version}</version>
     </dependency>
 
-    <!-- ✅ Cucumber JUnit (for @RunWith) -->
+    <!-- ✅ Cucumber-TestNG (NOT JUnit) -->
     <dependency>
       <groupId>io.cucumber</groupId>
-      <artifactId>cucumber-junit</artifactId>
+      <artifactId>cucumber-testng</artifactId>
       <version>${cucumber.version}</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- ✅ JUnit 4 -->
+    <!-- ✅ TestNG -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>7.10.2</version>
       <scope>test</scope>
     </dependency>
 
-    <!-- ✅ Optional: Reporting -->
+    <!-- Reports -->
     <dependency>
       <groupId>net.masterthought</groupId>
       <artifactId>cucumber-reporting</artifactId>
       <version>5.8.0</version>
     </dependency>
-    
-	 <dependency>
-	  <groupId>io.cucumber</groupId>
-	  <artifactId>cucumber-testng</artifactId>
-	  <version>7.14.0</version>
-	  <scope>test</scope>
-	</dependency>
-
 
   </dependencies>
 
@@ -87,7 +94,7 @@
         </configuration>
       </plugin>
 
-      <!-- ✅ Surefire Plugin (JUnit detection only) -->
+      <!-- ✅ Surefire -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -104,3 +111,4 @@
   </build>
 
 </project>
+

@@ -19,8 +19,8 @@ public class LoginPage {
 		PageFactory.initElements(driver, this);
 		elementsUtils = new ElementsUtils(driver);
 	}
-	
-	@FindBy(xpath="//img[@src='https://soapboxtesting.riversilica.com/genesis/medialocal/avatars/user-avatar.png']")
+	//img[@src='https://soapboxtesting.riversilica.com/genesis/medialocal/avatars/user-avatar.png']
+	@FindBy(xpath="//img[@alt='user']")
 	private WebElement clickingavatarimage;
 	
 	@FindBy(xpath="//h6[normalize-space()='SIGN IN']")
