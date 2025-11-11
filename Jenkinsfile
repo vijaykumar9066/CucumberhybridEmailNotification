@@ -1,18 +1,17 @@
 pipeline {
 
-    agent any                      // Runs pipeline on any available Jenkins agent/node
+    agent any
 
-    /*
-    tools {                        // (COMMENTED) — Jenkins managed tools such as Maven
-        maven 'maven-3.9.9'        // Name must match Maven config under Global Tool
+    environment {
+        COMPOSE_PATH   = "${WORKSPACE}/docker"
+        SELENIUM_GRID  = "true"
     }
-    */
 
     stages {
 
-        // ------------------------------
-        // ✅ 1) CHECKOUT CODE
-        // ------------------------------
+        // ------------------------------------------------
+        // ✅ CHECKOUT
+        // ------------------------------------------------
         stage('Checkout') {
             steps {
                 git branch: 'main',
@@ -20,36 +19,52 @@ pipeline {
             }
         }
 
-        // ------------------------------
-        // ✅ 2) BUILD WITHOUT TESTS
-        // ------------------------------
+        // ------------------------------------------------
+        // ✅ START SELENIUM GRID
+        // ------------------------------------------------
+        stage('Start Selenium Grid via Docker') {
+            when {
+                expression { return env.SELENIUM_GRID == "true" }
+            }
+            steps {
+                echo 'Starting Selenium Grid with Docker Compose'
+                bat "docker compose -f ${COMPOSE_PATH}\\docker-compose.yml up -d"
+
+                echo "Waiting 30 seconds for Selenium Grid to be ready..."
+                sleep 30
+            }
+        }
+
+        // ------------------------------------------------
+        // ✅ BUILD
+        // ------------------------------------------------
         stage('Build') {
             steps {
                 bat 'mvn clean install -DskipTests'
             }
         }
 
-        // ------------------------------
-        // ✅ 3) RUN TESTS
-        // ------------------------------
+        // ------------------------------------------------
+        // ✅ RUN TESTS
+        // ------------------------------------------------
         stage('Test') {
             steps {
                 bat 'mvn test'
             }
         }
 
-        // ------------------------------
-        // ✅ 4) PUBLISH CUCUMBER REPORT
-        // ------------------------------
+        // ------------------------------------------------
+        // ✅ CUCUMBER REPORT
+        // ------------------------------------------------
         stage('Publish Cucumber Report') {
             steps {
-                cucumber fileIncludePattern: '**/cucumber.json'
+                cucumber fileIncludePattern: '**/cucumber.html'
             }
         }
 
-        // ------------------------------
-        // ✅ 5) PUBLISH EXTENT REPORT
-        // ------------------------------
+        // ------------------------------------------------
+        // ✅ EXTENT REPORT
+        // ------------------------------------------------
         stage('Publish Extent Report') {
             steps {
                 publishHTML (
@@ -61,21 +76,36 @@ pipeline {
                 )
             }
         }
+
+        // ------------------------------------------------
+        // ✅ STOP SELENIUM GRID
+        // ------------------------------------------------
+        stage('Stop Selenium Grid') {
+            when {
+                expression { return env.SELENIUM_GRID == "true" }
+            }
+            steps {
+                script {
+                    echo "Stopping Selenium Grid..."
+                    bat "docker compose -f ${COMPOSE_PATH}\\docker-compose.yml down"
+                }
+            }
+        }
     }
 
     post {
 
-        // ---------------------------------------------------------
-        // ✅ ALWAYS RUN — ARCHIVE REPORTS
-        // ---------------------------------------------------------
+        // ----------------------------------------------
+        // ✅ ALWAYS: ARCHIVE REPORT + JUNIT XML
+        // ----------------------------------------------
         always {
             archiveArtifacts artifacts: '**/src/test/resources/ExtentReport/*.html', fingerprint: true
             junit 'target/surefire-reports/*.xml'
         }
 
-        // ---------------------------------------------------------
+        // ----------------------------------------------
         // ✅ SUCCESS EMAIL
-        // ---------------------------------------------------------
+        // ----------------------------------------------
         success {
             emailext(
                 to: 'vijakv155@gmail.com',
@@ -97,7 +127,6 @@ pipeline {
 <tr><td><b>Commit</b></td><td>${GIT_COMMIT}</td></tr>
 <tr><td><b>URL</b></td><td><a href="${env.BUILD_URL}">${env.BUILD_URL}</a></td></tr>
 
-<!-- ✅ Extent Report Link -->
 <tr>
 <td><b>Extent Report</b></td>
 <td><a href="${env.BUILD_URL}Extent_Reports/index.html" target="_blank">Open Report</a></td>
@@ -112,9 +141,9 @@ pipeline {
             )
         }
 
-        // ---------------------------------------------------------
+        // ----------------------------------------------
         // ❌ FAILURE EMAIL
-        // ---------------------------------------------------------
+        // ----------------------------------------------
         failure {
             emailext(
                 to: 'vijakv155@gmail.com',
@@ -136,7 +165,6 @@ pipeline {
 <tr><td><b>Commit</b></td><td>${GIT_COMMIT}</td></tr>
 <tr><td><b>URL</b></td><td><a href="${env.BUILD_URL}">${env.BUILD_URL}</a></td></tr>
 
-<!-- ✅ Extent Report Link -->
 <tr>
 <td><b>Extent Report</b></td>
 <td><a href="${env.BUILD_URL}Extent_Reports/index.html" target="_blank">Open Report</a></td>
@@ -152,4 +180,5 @@ pipeline {
         }
     }
 }
+
 

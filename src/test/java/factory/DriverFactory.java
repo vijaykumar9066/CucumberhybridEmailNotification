@@ -1,47 +1,102 @@
 package factory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.Duration;
+import java.util.Properties;
 
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
+import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import utiles.commonutils;
+import utiles.ConfigReader;
 
 public class DriverFactory {
 
-    private static WebDriver driver;
+    private static ThreadLocal<WebDriver> driver = new ThreadLocal<>();
 
     public static WebDriver initializeBrowser(String browserName) {
+        Properties prop = ConfigReader.loadConfigProperties();
+        boolean runGrid = Boolean.parseBoolean(prop.getProperty("seleniumgrid"));
+        String gridUrl = prop.getProperty("gridurl");
+        boolean headless = Boolean.parseBoolean(prop.getProperty("headless"));
 
-        if (browserName.equalsIgnoreCase("chrome")) {
-            WebDriverManager.chromedriver().setup();
-            driver = new ChromeDriver();
+        WebDriver localDriver;
 
-        } else if (browserName.equalsIgnoreCase("firefox")) {
-            WebDriverManager.firefoxdriver().setup();
-            driver = new FirefoxDriver();
+        if (runGrid) {
+            switch (browserName.toLowerCase()) {
+                case "chrome":
+                    ChromeOptions chromeOptions = new ChromeOptions();
+                    if (headless) chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments("--disable-gpu","--no-sandbox",
+                            "--disable-dev-shm-usage","--remote-allow-origins=*");
+                    localDriver = new RemoteWebDriver(getGridUrl(gridUrl), chromeOptions);
+                    break;
 
-        } else if (browserName.equalsIgnoreCase("edge")) {
-            WebDriverManager.edgedriver().setup();
-            driver = new EdgeDriver();
+                case "firefox":
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    if (headless) firefoxOptions.addArguments("--headless");
+                    localDriver = new RemoteWebDriver(getGridUrl(gridUrl), firefoxOptions);
+                    break;
 
+                case "edge":
+                    EdgeOptions edgeOptions = new EdgeOptions();
+                    if (headless) edgeOptions.addArguments("--headless=new");
+                    localDriver = new RemoteWebDriver(getGridUrl(gridUrl), edgeOptions);
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Invalid Browser: " + browserName);
+            }
         } else {
-            throw new IllegalArgumentException("Invalid Browser Name: " + browserName);
+            browserName = prop.getProperty("localbrowser");
+            switch (browserName.toLowerCase()) {
+                case "chrome":
+                    WebDriverManager.chromedriver().setup();
+                    localDriver = new org.openqa.selenium.chrome.ChromeDriver();
+                    break;
+                case "firefox":
+                    WebDriverManager.firefoxdriver().setup();
+                    localDriver = new org.openqa.selenium.firefox.FirefoxDriver();
+                    break;
+                case "edge":
+                    WebDriverManager.edgedriver().setup();
+                    localDriver = new org.openqa.selenium.edge.EdgeDriver();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid Browser: " + browserName);
+            }
         }
 
-        driver.manage().deleteAllCookies();
-        driver.manage().window().maximize();
-        driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(commonutils.PAGE_LOAD_TIME));
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(commonutils.IMPLICIT_WAIT_TIME));
+        // Common setup
+        localDriver.manage().deleteAllCookies();
+        localDriver.manage().window().maximize();
+        localDriver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(120));
+        localDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(20));
 
-        return driver;
+        driver.set(localDriver);
+        return getDriver();
     }
 
     public static WebDriver getDriver() {
-        return driver;
+        return driver.get();
+    }
+
+    private static URL getGridUrl(String urlString) {
+        try {
+            return new URL(urlString);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("❌ Invalid Grid URL: " + urlString);
+        }
+    }
+
+    public static void quitDriver() {
+        if (driver.get() != null) {
+            driver.get().quit();
+            driver.remove();
+        }
     }
 }
-
